@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hybrid-opt
+description: Hybrid Particles Optimization service Helm chart
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

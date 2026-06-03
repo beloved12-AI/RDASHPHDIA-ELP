@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hybrid-opt
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/beloved12-AI/rdashphdia-elp.git'
+    targetRevision: HEAD
+    path: charts/hybrid-opt
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

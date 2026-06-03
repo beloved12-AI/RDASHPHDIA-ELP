@@ -1,0 +1,3 @@
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods -l app={{ include "hybrid-opt.name" . }} -o jsonpath="{.items[0].metadata.name}")
+  kubectl port-forward $POD_NAME 8080:8080

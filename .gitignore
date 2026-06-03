@@ -1,51 +1,27 @@
-# Ignore list for Eagle, a PCB layout tool
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+/dist
+/build
+/*.egg-info
+Dockerfile
+*.db
+.kubeconfig
+.idea/
+.vscode/
+.envrc
+.env.local
 
-# Backup files
-*.s#?
-*.b#?
-*.l#?
-*.b$?
-*.s$?
-*.l$?
+# Docker
+docker-compose.override.yml
 
-# Eagle project file
-# It contains a serial number and references to the file structure
-# on your computer.
-# comment the following line if you want to have your project file included.
-eagle.epf
+# Helm
+*.tgz
 
-# Autorouter files
-*.pro
-*.job
+# GitHub Actions
+.github/
 
-# CAM files
-*.$$$
-*.cmp
-*.ly2
-*.l15
-*.sol
-*.plc
-*.stc
-*.sts
-*.crc
-*.crs
-
-*.dri
-*.drl
-*.gpi
-*.pls
-*.ger
-*.xln
-
-*.drd
-*.drd.*
-
-*.s#*
-*.b#*
-
-*.info
-
-*.eps
-
-# file locks introduced since 7.x
-*.lck
