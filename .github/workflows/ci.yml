@@ -26,7 +26,7 @@ jobs:
       - name: Run tests
         run: |
           pip install pytest
-          pytest -q
+          pytest -qpythonpath=
       - name: Build and push image
         if: github.event_name != 'pull_request'
         env:
