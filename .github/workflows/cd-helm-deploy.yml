@@ -14,17 +14,17 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Kubectl
         uses: azure/setup-kubectl@v3
-      - name: Decode Kuberconfig
+      - name: Decode kubeconfig
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          echo "$KUBE_CONFIG" | base64 --decode > kuberconfig
-          export KUBECONFIG=$PWD/kuberconfig
+          echo "$KUBE_CONFIG" | base64 --decode > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
           kubectl version --client
       - name: Helm upgrade
         env:
           IMAGE_TAG: ${{ github.sha }}
-      KUBE_CONFIG: $PWD/Kuberconfig
+          KUBE_CONFIG: $PWD/kubeconfig
         run: |
           helm upgrade --install hybrid-opt charts/hybrid-opt \
             --set image.repository=ghcr.io/${{ github.repository }}/hybrid-opt \
