@@ -14,12 +14,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Kubectl
         uses: azure/setup-kubectl@v3
-      - name: Decode Kubeconfig
+      - name: Decode Kuberconfig
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          echo "$KUBE_CONFIG" | base64 --decode > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
+          echo "$KUBE_CONFIG" | base64 --decode > kuberconfig
+          export KUBECONFIG=$PWD/kuberconfig
           kubectl version --client
       - name: Helm upgrade
         env:
