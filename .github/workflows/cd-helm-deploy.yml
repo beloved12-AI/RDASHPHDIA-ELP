@@ -6,26 +6,51 @@ on:
     types:
       - completed
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout CI commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
       - name: Setup Kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
       - name: Decode Kubeconfig
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          echo "$KUBE_CONFIG" | base64 --decode > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
+          echo "$KUBE_CONFIG" | base64 --decode > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+
+      - name: Verify Kubernetes connection
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+        run: |
           kubectl version --client
+          kubectl cluster-info
+
       - name: Helm upgrade
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_REPOSITORY: ghcr.io/${{ github.repository }}/hybrid-opt
         run: |
           helm upgrade --install hybrid-opt charts/hybrid-opt \
-            --set image.repository=ghcr.io/${{ github.repository }}/hybrid-opt \
-            --set image.tag=${IMAGE_TAG}
+            --namespace hybrid-opt \
+            --create-namespace \
+            --set image.repository="$IMAGE_REPOSITORY" \
+            --set image.tag="$IMAGE_TAG" \
+            --wait \
+            --timeout 5m
