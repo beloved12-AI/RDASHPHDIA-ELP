@@ -29,3 +29,4 @@ jobs:
           helm upgrade --install hybrid-opt charts/hybrid-opt \
             --set image.repository=ghcr.io/${{ github.repository }}/hybrid-opt \
             --set image.tag=${IMAGE_TAG}
+            
