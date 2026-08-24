@@ -2,26 +2,30 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -33,12 +37,30 @@ jobs:
           pip install pytest
           pytest -q
 
-      - name: Build and push Docker image
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build Docker image
         if: github.event_name != 'pull_request'
         env:
-          REGISTRY: ghcr.io
-          IMAGE_NAME: ${{ github.repository }}
+          IMAGE: ghcr.io/${{ github.repository }}/hybrid-opt
+          TAG: ${{ github.sha }}
         run: |
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
-          docker build -t $REGISTRY/${{ github.repository }}/hybrid-opt:${{ github.sha}} .
-          docker push $REGISTRY/${{ github.repository }}/hybrid-opt:${{ github.sha}}
+          docker build \
+            --tag "$IMAGE:$TAG" \
+            --tag "$IMAGE:latest" \
+            .
+
+      - name: Push Docker image
+        if: github.event_name != 'pull_request'
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/hybrid-opt
+          TAG: ${{ github.sha }}
+        run: |
+          docker push "$IMAGE:$TAG"
+          docker push "$IMAGE:latest"
