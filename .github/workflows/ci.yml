@@ -48,14 +48,14 @@ jobs:
       - name: Build Docker image
         if: github.event_name != 'pull_request'
         env:
-          IMAGE: ghcr.io/${{ github.repository }}/hybrid-opt
+          IMAGE: ghcr.io/beloved12-ai/rdashphdia-elp/hybrid-opt
           TAG: ${{ github.sha }}
         run: docker build --tag "$IMAGE:$TAG" --tag "$IMAGE:latest" .
 
       - name: Push Docker image
         if: github.event_name != 'pull_request'
         env:
-          IMAGE: ghcr.io/${{ github.repository }}/hybrid-opt
+          IMAGE: ghcr.io/beloved12-ai/rdashphdia-elp/hybrid-opt
           TAG: ${{ github.sha }}
         run: |
           docker push "$IMAGE:$TAG"
