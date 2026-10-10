@@ -54,7 +54,7 @@ jobs:
           parser.feed(Path("rdashphdia-elp-visual-simulation.html").read_text(encoding="utf-8"))
           if not parser.parts:
               raise SystemExit("No inline JavaScript found")
-          Path("/tmp/simulation.js").write_text("\\n".join(parser.parts), encoding="utf-8")
+          Path("/tmp/simulation.js").write_text("\n".join(parser.parts), encoding="utf-8")
           PY
           node --check /tmp/simulation.js
       - name: Prepare static site
