@@ -1,0 +1,20 @@
+spec:
+  containers:
+  - name: hybrid-opt
+    image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+    ports:
+    - containerPort: 8000
+  - name: opa
+    image: openpolicyagent/opa:latest-rootless
+    args:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "/policies"
+    volumeMounts:
+      - name: opa-policies
+        mountPath: /policies
+  volumes:
+  - name: opa-policies
+    configMap:
+      name: opa-policy-config
