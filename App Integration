@@ -1,0 +1,28 @@
+import httpx
+from fastapi import FastAPI, HTTPException, Request
+
+app = FastAPI()
+
+
+@app.middleware("http")
+async def opa_authz_middleware(request: Request, call_next):
+  # Skip health checks
+  if request.url.path in ["/health", "/docs"]:
+    return await call_next(request)
+
+  input_data = {
+      "method": request.method,
+      "path": request.url.path.strip("/").split("/"),
+      "role": request.headers.get("X-User-Role", "anonymous"),
+  }
+
+  async with httpx.AsyncClient() as client:
+    response = await client.post(
+        "http://localhost:8181/v1/data/elp/authz/allow", json={"input": input_data}
+    )
+    result = response.json()
+
+  if not result.get("result", False):
+    raise HTTPException(status_code=403, detail="Access denied by OPA policy")
+
+  return await call_next(request)
