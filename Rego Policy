@@ -1,0 +1,15 @@
+package elp.authz
+
+default allow = false
+
+# Allow read-only access for clinical staff
+allow {
+    input.method == "GET"
+    input.path = ["api", "v1", "particles"]
+    input.role == "clinical_staff"
+}
+
+# Allow full administrative access
+allow {
+    input.role == "admin"
+}
