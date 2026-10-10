@@ -1,29 +1,42 @@
-# ELP implementation mapping
+# RDASHPHDIA implementation mapping
 
-This prototype implements the enterprise-learning MVP described in the supplied RDASHPHDIA proposal. It uses the proposal as design context; it does not reproduce the proposal's biomedical or nanoparticle workflows.
+This repository implements an enterprise-learning MVP from the supplied proposal and a separate synthetic-data biomedical research simulator. The biomedical module is a software demonstration of redundancy and cross-checking concepts; it does not implement biological materials or clinical workflows.
 
-## Data and event flow
+## ELP data and event flow
 
-1. A learner profile stores a role, current skill scores, and target scores for that role. Scores range from `0` to `1`.
-2. A course lists the skills it covers and can be marked mandatory for everyone or for selected roles.
-3. `POST /api/v1/events` records a course completion or skill assessment. Course-completion events can include measured post-course scores for the course's skills.
-4. Skill gaps and the shared skill-priority field are recomputed from the current profiles. The field raises priority when a skill has a larger average gap and more learners below target.
-5. Two recommendation components score eligible courses: a rules-based engine uses the learner's own gaps, while an adaptive engine also weighs the shared skill field. Mandatory courses receive priority in both.
-6. The service averages the two scores. If the engines select different top courses, the response recommends manager review while still returning the weighted ranking.
-7. The compliance component compares required courses with the learner's completion record.
+1. A learner profile stores a role, current skill scores, and target scores for that role. Scores range from 0 to 1.
+2. A course lists the skills it covers and can be mandatory for everyone or selected roles.
+3. `POST /api/v1/events` records course completion or a skill assessment. Course completions may include post-course scores for covered skills.
+4. Skill gaps and the shared skill-priority field are recomputed from current profiles.
+5. Rules-based and adaptive recommenders score eligible courses; the adaptive score also weighs the shared skill field.
+6. A weighted consensus returns ranked courses and flags disagreement for manager review.
+7. Compliance compares required courses with the learner's completion record.
 
-## Current endpoints
+## API endpoints
 
 - `POST /api/v1/learners` and `GET /api/v1/learners/{learner_id}` manage learner profiles.
 - `POST /api/v1/courses` and `GET /api/v1/courses` manage the course catalogue.
-- `POST /api/v1/events` ingests completion and assessment events.
+- `POST /api/v1/events` records completion and assessment events.
 - `GET /api/v1/learners/{learner_id}/skill-gaps` returns current and target scores.
-- `GET /api/v1/learners/{learner_id}/recommendations` returns both engine leaders, consensus status, and ranked courses.
+- `GET /api/v1/learners/{learner_id}/recommendations` returns rankings and consensus status.
 - `GET /api/v1/learners/{learner_id}/compliance` returns completed and outstanding mandatory courses.
-- `GET /api/v1/skills/field` returns population-level skill gaps and priorities.
+- `GET /api/v1/skills/field` summarizes population-level gaps and priorities.
+- `GET /api/v1/biomedical/scenarios` lists synthetic channel templates.
+- `POST /api/v1/biomedical/simulate` calculates synthetic channel coverage and readout consistency.
+
+## Biomedical simulator
+
+| Scenario | Channels represented |
+| --- | --- |
+| Targeted cancer-therapy delivery | Folate and antibody targeting; pH and enzyme release cues; therapeutic and imaging payloads |
+| Vaccine platform | Multiple antigen and adjuvant-pathway channels |
+| Antimicrobial mechanisms | Membrane disruption and reactive oxygen species |
+| Biosensor/diagnostics | Optical and electrochemical readouts |
+
+Each channel accepts an optional numeric synthetic score from 0 to 1. Callers can mark channels failed to inspect the remaining group coverage. Biosensor outputs summarize whether two supplied readouts agree around a caller-provided threshold and may suggest manual review for missing or disagreeing readouts. The simulator returns no diagnosis or treatment recommendation, accepts no patient records, and does not persist biomedical inputs.
 
 ## Deliberate limits
 
-The agents are logical components in one process, not separately deployed distributed agents. State is in-memory and is neither durable nor shared across replicas. The adaptive engine is a deterministic heuristic; it does not call an AI provider or learn a policy. The service has no authentication or external integrations. These limits keep the scaffold runnable while making the next implementation steps explicit: persistent storage, access controls, integration contracts, event delivery, and evaluated recommendation models.
+The ELP agents are logical components in one process, not separately deployed services. ELP state is in-memory and neither durable nor shared across replicas. The adaptive engine is a deterministic heuristic, not a trained model. The service has no authentication or external integrations.
 
-The service is a software learning-platform prototype. It does not implement biological particles, drug delivery, gene editing, diagnostic workflows, or medical decision-making.
+The biomedical simulator uses invented numeric inputs only. Its outputs are not biological measurements, evidence of safety or efficacy, clinical evidence, or medical advice. Validate any subsystem in controlled research settings before biological use; do not use this API to guide patient care or real-world biological work.
