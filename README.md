@@ -66,3 +66,23 @@ Event IDs are idempotent: a repeated event with the same ID and payload is ackno
 - The adaptive scores are transparent heuristics for demonstrating the proposal, not trained model outputs or evidence of improved learning outcomes.
 
 See [`docs/ELP_IMPLEMENTATION.md`](docs/ELP_IMPLEMENTATION.md) for the architecture mapping and [`docs/RDASHPHDIA.pdf`](docs/RDASHPHDIA.pdf) for the supplied proposal.
+
+
+## Biomedical research simulator
+
+The supplied proposal's biomedical concepts are exposed as a synthetic-data research simulator. The endpoints are:
+
+- `GET /api/v1/biomedical/scenarios` lists the four scenario templates and their channel names.
+- `POST /api/v1/biomedical/simulate` compares channel coverage and shows how a simulated channel failure affects coverage.
+
+The scenarios cover redundant targeting and release cues with therapeutic or imaging payload channels; antigen and adjuvant coverage; membrane disruption and reactive oxygen channels; and agreement between optical and electrochemical readouts. Submit synthetic numeric scores from 0 to 1 only. Unknown channels and out-of-range scores are rejected. The biosensor scenario reports readout agreement and can suggest manual review when a readout is missing or disagrees; it never returns a diagnosis.
+
+Example synthetic request:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/biomedical/simulate \
+  -H "Content-Type: application/json" \
+  -d '{"scenario":"biosensor_diagnostics","signals":{"optical_readout":0.8,"electrochemical_readout":0.3},"threshold":0.5}'
+```
+
+These outputs are software demonstrations, not validated biological measurements, safety or efficacy estimates, clinical evidence, or treatment advice. The module does not accept patient records and does not persist simulator inputs. Keep all examples synthetic and conduct controlled validation before any biological use.
