@@ -86,3 +86,31 @@ curl -X POST http://localhost:8080/api/v1/biomedical/simulate \
 ```
 
 These outputs are software demonstrations, not validated biological measurements, safety or efficacy estimates, clinical evidence, or treatment advice. The module does not accept patient records and does not persist simulator inputs. Keep all examples synthetic and conduct controlled validation before any biological use.
+
+
+## Visual simulation and GitHub Pages
+
+The browser simulation is published as a static page by `.github/workflows/pages.yml`. After the first workflow run, open **Settings → Pages** and ensure the build/deployment source is **GitHub Actions** if GitHub Pages has not already been configured.
+
+Expected site URL:
+`https://beloved12-ai.github.io/RDASHPHDIA-ELP/`
+
+The simulation page includes a **FastAPI backend connection** panel. Enter the backend origin (for example `http://127.0.0.1:8080` for a local-only test) and choose **Test connection**. The panel checks `/health` and `/api/v1/courses`, and can also fetch recommendations for an optional learner ID. This panel does not convert the illustrative on-page metrics into API-calculated metrics.
+
+### Connect the deployed page to FastAPI
+
+GitHub Pages only hosts static files; it does not host the Python API. For remote access, deploy this FastAPI service to an HTTPS-capable host and enter that HTTPS origin in the page. Configure the backend environment variable `ALLOWED_ORIGINS` as a comma-separated list of allowed origins, including:
+
+- `https://beloved12-ai.github.io`
+- Any local development origin you use, such as `http://localhost:8000`
+
+The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. Do not use real employee, learner, patient, or other sensitive records: this prototype has no authentication or persistent database. Its data is held in process memory and resets when the service restarts.
+
+### Run and test locally
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8080
+```
+
+Open `rdashphdia-elp-visual-simulation.html` in a browser and enter `http://127.0.0.1:8080` in the FastAPI connection panel. A browser opened from a local file may still be subject to browser cross-origin rules; if needed, serve the HTML from a local static server. A local API address is only reachable from the same computer and cannot be used by visitors to the public GitHub Pages site.
