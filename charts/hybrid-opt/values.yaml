@@ -1,6 +1,6 @@
 replicaCount: 1
 image:
-  repository: ghcr.io/beloved12-AI/rdashphdia-elp/hybrid-opt
+  repository: ghcr.io/beloved12-ai/rdashphdia-elp/hybrid-opt
   pullPolicy: IfNotPresent
   tag: "latest"
 service:
