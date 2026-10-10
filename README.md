@@ -1,25 +1,68 @@
-# RDASHPHDIA-ELP — Hybrid Particles Optimization Service
+# RDASHPHDIA-ELP Learning Intelligence Service
 
-Opinionated scaffold for the Hybrid Particles Optimization microservice used in the RDASHPHDIA-ELP project.
+A FastAPI prototype that turns the Enterprise Learning Platform (ELP) portion of the RDASHPHDIA proposal into an executable learning-path service. It models learner skills, course requirements, learning events, compliance, and a group-level skill-priority field.
 
-Contents:
-- FastAPI service (app/)
-- Dockerfile
-- requirements.txt
-- Helm chart (charts/hybrid-opt)
-- ArgoCD app manifest (infra/argocd)
-- GitHub Actions workflows (CI + optional Helm CD)
-- Makefile
+The proposal's “hybrid particles” are represented here as changing skill weights in a learner graph. Separate rule-based and adaptive recommenders provide overlapping recommendations; a weighted consensus selects a learning path and flags disagreements for manager review.
 
-Usage
-- Build locally: make build
-- Run locally: make run
-- Run tests: make test
-- Deploy with Helm: helm upgrade --install hybrid-opt charts/hybrid-opt
-a novel framework that integrates adaptive 
-nanotechnology, redundancy engineering, and multi-agent intelligence. The system leverages 
-hybrid biological and bioengineered particles capable of sensing, communication, computation, 
-and actuation, while embedding multiple layers of redundancy to enhance reliability, fault 
-tolerance, and adaptability in complex environments. Distributed intelligence agents coordinate 
-these particles using consensus algorithms, swarm intelligence, and reinforcement learning to 
-enable collective decision-making under uncertainty.
+## Run locally
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8080
+```
+
+The interactive API reference is available at `http://localhost:8080/docs`. To run the container instead, use `make build` followed by `make run`.
+
+## API overview
+
+All application routes are under `/api/v1`.
+
+| Route | Purpose |
+| --- | --- |
+| `POST /learners` | Register a learner with current and role-required skills |
+| `GET /learners/{learner_id}` | Read a learner's skill profile and completed courses |
+| `POST /courses` | Add a course and the skills or roles it covers |
+| `GET /courses` | List the course catalogue |
+| `POST /events` | Record course completion or a skill assessment |
+| `GET /learners/{learner_id}/skill-gaps` | Compare current skills with role targets |
+| `GET /learners/{learner_id}/recommendations` | Compare rule-based and adaptive rankings, then return a consensus path |
+| `GET /learners/{learner_id}/compliance` | List required training that is complete or outstanding |
+| `GET /skills/field` | Summarize skill gaps and struggle rates across registered learners |
+| `GET /health` | Check service availability |
+
+`GET /api/v1/optimize?learner_id=...` remains as a deprecated alias for recommendations.
+
+## Example flow
+
+Register a learner and a course:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/learners \
+  -H "Content-Type: application/json" \
+  -d '{"learner_id":"learner-1","role":"analyst","skills":{"data-analysis":0.25},"required_skills":{"data-analysis":0.8}}'
+
+curl -X POST http://localhost:8080/api/v1/courses \
+  -H "Content-Type: application/json" \
+  -d '{"course_id":"analysis-foundations","title":"Analysis Foundations","skills":["data-analysis"],"mandatory_for_all":false,"mandatory_for_roles":[]}'
+```
+
+Review the skill gap and recommendation, then record a completion event with the observed post-course skill score:
+
+```bash
+curl http://localhost:8080/api/v1/learners/learner-1/recommendations
+
+curl -X POST http://localhost:8080/api/v1/events \
+  -H "Content-Type: application/json" \
+  -d '{"event_id":"event-1","learner_id":"learner-1","event_type":"course_completed","course_id":"analysis-foundations","skill_scores":{"data-analysis":0.7}}'
+```
+
+Event IDs are idempotent: a repeated event with the same ID and payload is acknowledged without applying its updates twice. Reusing an ID for a different event returns `409 Conflict`.
+
+## Prototype boundaries
+
+- Learners, courses, and events live in process memory and reset on restart. Keep the service to one replica until a shared persistent store is added.
+- The “agents” are independent decision components in one API process. There is no external LLM, message broker, HRIS, or LMS integration.
+- This prototype has no authentication, authorization, or encryption layer. Use synthetic data only; do not send real employee or other sensitive records to it.
+- The adaptive scores are transparent heuristics for demonstrating the proposal, not trained model outputs or evidence of improved learning outcomes.
+
+See [`docs/ELP_IMPLEMENTATION.md`](docs/ELP_IMPLEMENTATION.md) for the architecture mapping and [`docs/RDASHPHDIA.pdf`](docs/RDASHPHDIA.pdf) for the supplied proposal.
