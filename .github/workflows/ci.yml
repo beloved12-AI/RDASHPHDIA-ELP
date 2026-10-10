@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         run: |
           pip install pytest
-          pytest -q
+          python -m pytest -q
 
       - name: Log in to GitHub Container Registry
         if: github.event_name != 'pull_request'
@@ -50,11 +50,7 @@ jobs:
         env:
           IMAGE: ghcr.io/${{ github.repository }}/hybrid-opt
           TAG: ${{ github.sha }}
-        run: |
-          docker build \
-            --tag "$IMAGE:$TAG" \
-            --tag "$IMAGE:latest" \
-            .
+        run: docker build --tag "$IMAGE:$TAG" --tag "$IMAGE:latest" .
 
       - name: Push Docker image
         if: github.event_name != 'pull_request'
