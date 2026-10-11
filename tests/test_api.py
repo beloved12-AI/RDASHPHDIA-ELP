@@ -156,7 +156,7 @@ def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
         "+'/compliance'",
     ):
         assert endpoint in html
-    assert "metrics above remain illustrative" in html
+    assert "Simulation metrics remain illustrative" in html
     assert "Promise.all(liveRequests.map" in html
     assert "function renderLiveRecommendations(data)" in html
     assert "LIVE API OUTPUT" in html
