@@ -140,3 +140,21 @@ def test_biomedical_simulation_is_synthetic_and_marks_disagreement():
     assert response.json()["readout_consistency"] == "readouts_disagree"
     assert response.json()["manual_review_suggested"] is True
     assert response.json()["clinical_conclusion"] is None
+
+
+def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
+    from pathlib import Path
+
+    html = Path(__file__).resolve().parents[1].joinpath(
+        "rdashphdia-elp-visual-simulation.html"
+    ).read_text(encoding="utf-8")
+    for endpoint in (
+        "'/health'",
+        "'/api/v1/courses'",
+        "+'/skill-gaps'",
+        "+'/recommendations'",
+        "+'/compliance'",
+    ):
+        assert endpoint in html
+    assert "metrics above remain illustrative" in html
+    assert "Promise.all(liveRequests.map" in html
