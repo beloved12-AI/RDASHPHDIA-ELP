@@ -114,3 +114,20 @@ uvicorn app.main:app --reload --port 8080
 ```
 
 Open `rdashphdia-elp-visual-simulation.html` in a browser and enter `http://127.0.0.1:8080` in the FastAPI connection panel. A browser opened from a local file may still be subject to browser cross-origin rules; if needed, serve the HTML from a local static server. A local API address is only reachable from the same computer and cannot be used by visitors to the public GitHub Pages site.
+
+
+### Free public FastAPI deployment on Render
+
+The repository includes a `render.yaml` Blueprint for a free Render web service.
+
+1. Sign in or create an account at https://render.com/.
+2. Connect your GitHub account and authorize access to `beloved12-AI/RDASHPHDIA-ELP`.
+3. Open https://dashboard.render.com/blueprints and choose **New Blueprint Instance** (or use Render's **New → Blueprint** flow).
+4. Select this repository and its default branch. Render should detect `render.yaml`; review the service named `rdashphdia-elp-api` and deploy it on the **Free** plan.
+5. Wait for the first deployment to finish. Open the service overview and copy the actual public `https://…onrender.com` URL shown by Render. Do not assume the URL until Render assigns/confirms it.
+6. Test `https://YOUR-RENDER-URL/health`; it should return JSON such as `{"status":"ok"}`. Then test `https://YOUR-RENDER-URL/docs`.
+7. Open the public GitHub Pages simulation, paste the Render service's HTTPS origin (without a trailing slash) into **FastAPI backend connection**, and select **Test connection**.
+
+The Blueprint sets the service start command to `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, uses `/health` as its health check, and allows the GitHub Pages origin through the `ALLOWED_ORIGINS` environment variable.
+
+**Free-tier notes:** Render free web services sleep after 15 minutes without inbound traffic and may take about a minute to wake on the next request. Free services have ephemeral storage; this application currently keeps data in memory, so learner/course/event records reset on restarts. The service is intended for testing and hobby use, not production or sensitive data. See https://render.com/docs/free for current limits.
