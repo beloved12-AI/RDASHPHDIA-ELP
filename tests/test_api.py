@@ -162,7 +162,7 @@ def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
     assert "LIVE API OUTPUT" in html
     assert "function generateLearnerId()" in html
     assert "function createLearnerProfile()" in html
-    assert "fetch(base+'/api/v1/learners'" in html
+    assert "apiRequest(base,'/api/v1/learners'" in html
     assert "newLearnerRole" in html
 
     # All learner-specific requests must pass the base URL and endpoint separately.
@@ -214,3 +214,35 @@ def test_learning_records_survive_service_restart(tmp_path):
     repeated = restarted_service.record_event(event)
     assert repeated["duplicate"] is True
     assert restarted_service.get_learner("durable-learner")["skills"]["data-analysis"] == 0.75
+
+
+
+def test_configured_bearer_token_protects_api_routes_but_not_health(monkeypatch):
+    monkeypatch.setenv("API_AUTH_TOKEN", "test-secret-token")
+
+    assert client.get("/health").status_code == 200
+    assert client.get("/api/v1/courses").status_code == 401
+    assert client.get(
+        "/api/v1/courses",
+        headers={"Authorization": "Bearer wrong-token"},
+    ).status_code == 401
+
+    response = client.get(
+        "/api/v1/courses",
+        headers={"Authorization": "Bearer test-secret-token"},
+    )
+    assert response.status_code == 200
+
+
+def test_bearer_auth_does_not_block_cors_preflight(monkeypatch):
+    monkeypatch.setenv("API_AUTH_TOKEN", "test-secret-token")
+    response = client.options(
+        "/api/v1/courses",
+        headers={
+            "Origin": PAGES_ORIGIN,
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "authorization,content-type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == PAGES_ORIGIN

@@ -1,6 +1,8 @@
+import hmac
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.biomedical import router as biomedical_router
@@ -36,6 +38,31 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Accept", "Content-Type", "Authorization"],
 )
+@app.middleware("http")
+async def require_api_bearer_token(request: Request, call_next):
+    """Require a shared bearer token for API routes when configured."""
+    expected_token = os.getenv("API_AUTH_TOKEN", "").strip()
+    if (
+        expected_token
+        and request.url.path.startswith("/api/v1/")
+        and request.method != "OPTIONS"
+    ):
+        authorization = request.headers.get("Authorization", "")
+        scheme, separator, supplied_token = authorization.partition(" ")
+        if (
+            not separator
+            or scheme.lower() != "bearer"
+            or not supplied_token
+            or not hmac.compare_digest(supplied_token, expected_token)
+        ):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Missing or invalid bearer token"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    return await call_next(request)
+
+
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(biomedical_router, prefix="/api/v1")
 app.include_router(prediction_router, prefix="/api/v1")
