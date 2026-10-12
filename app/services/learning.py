@@ -24,11 +24,12 @@ class LearningService:
         configured_path = database_path or os.getenv(
             "LEARNING_DATABASE_PATH", "data/rdashphdia_elp.db"
         )
+        if configured_path == ":memory:":
+            raise ValueError("A file-backed SQLite database is required for persistence")
         self.database_path = configured_path
-        if configured_path != ":memory:":
-            Path(configured_path).expanduser().resolve().parent.mkdir(
-                parents=True, exist_ok=True
-            )
+        Path(configured_path).expanduser().resolve().parent.mkdir(
+            parents=True, exist_ok=True
+        )
         self.learners: Dict[str, Dict[str, Any]] = {}
         self.courses: Dict[str, Dict[str, Any]] = {}
         self.events: Dict[str, Dict[str, Any]] = {}
