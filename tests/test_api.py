@@ -1,7 +1,9 @@
 from fastapi.testclient import TestClient
 
 from app.api.routes import learning
+from app.api.schemas import CourseCreate, LearnerCreate, LearningEvent
 from app.main import app
+from app.services.learning import LearningService
 
 
 client = TestClient(app)
@@ -9,10 +11,8 @@ PAGES_ORIGIN = "https://beloved12-ai.github.io"
 
 
 def setup_function():
-    # The prototype service stores data in process memory; isolate each test.
-    learning.learners.clear()
-    learning.courses.clear()
-    learning.events.clear()
+    # Clear both the API service cache and its backing database between tests.
+    learning.reset()
 
 
 def create_learner():
@@ -172,3 +172,45 @@ def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
     )[0]
     assert live_requests.count("apiRequest(base,'/api/v1/learners/") == 4
     assert "apiRequest(base+'/api/v1/learners/" not in live_requests
+
+
+
+def test_learning_records_survive_service_restart(tmp_path):
+    database_path = tmp_path / "learning.db"
+    first_service = LearningService(database_path=str(database_path))
+    first_service.create_learner(
+        LearnerCreate(
+            learner_id="durable-learner",
+            role="analyst",
+            skills={"data-analysis": 0.2},
+            required_skills={"data-analysis": 0.8},
+        )
+    )
+    first_service.create_course(
+        CourseCreate(
+            course_id="durable-course",
+            title="Durable Course",
+            skills=["data-analysis"],
+            mandatory_for_all=True,
+            mandatory_for_roles=[],
+        )
+    )
+    event = LearningEvent(
+        event_id="durable-event",
+        learner_id="durable-learner",
+        event_type="course_completed",
+        course_id="durable-course",
+        skill_scores={"data-analysis": 0.75},
+    )
+    first_service.record_event(event)
+
+    # A new service instance simulates a process restart and reloads SQLite state.
+    restarted_service = LearningService(database_path=str(database_path))
+    learner = restarted_service.get_learner("durable-learner")
+    assert learner["skills"]["data-analysis"] == 0.75
+    assert learner["completed_courses"] == ["durable-course"]
+    assert restarted_service.list_courses()[0]["course_id"] == "durable-course"
+
+    repeated = restarted_service.record_event(event)
+    assert repeated["duplicate"] is True
+    assert restarted_service.get_learner("durable-learner")["skills"]["data-analysis"] == 0.75
