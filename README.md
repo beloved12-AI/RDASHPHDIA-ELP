@@ -117,7 +117,7 @@ GitHub Pages only hosts static files; it does not host the Python API. For remot
 - `https://beloved12-ai.github.io`
 - Any local development origin you use, such as `http://localhost:8000`
 
-The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. The service now persists learner, course, and event records to SQLite, but it still has no authentication, authorization, or encryption. Do not use real employee, learner, patient, or other sensitive records.
+The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. The service persists learner, course, and event records to SQLite. Configure `API_AUTH_TOKEN` to enable shared-token protection; without it, API routes are unauthenticated. There is no per-user authorization or encryption. Do not use real employee, learner, patient, or other sensitive records.
 
 ### Run and test locally
 
