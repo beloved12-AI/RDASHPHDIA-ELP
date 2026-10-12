@@ -63,7 +63,8 @@ Event IDs are idempotent: a repeated event with the same ID and payload is ackno
 - Learners, courses, and events live in process memory and reset on restart. Keep the service to one replica until a shared persistent store is added.
 - The “agents” are independent decision components in one API process. There is no external LLM, message broker, HRIS, or LMS integration.
 - This prototype has no authentication, authorization, or encryption layer. Use synthetic data only; do not send real employee or other sensitive records to it.
-- The adaptive scores are transparent heuristics for demonstrating the proposal, not trained model outputs or evidence of improved learning outcomes.
+- The current recommendation engine is a transparent heuristic, not a trained or validated learning-outcome predictor. Its dashboard metrics are illustrative and do not establish learning gains.
+- See [Learning-prediction validation protocol](docs/LEARNING_PREDICTION_VALIDATION.md) for the target definition, dataset contract, leakage-aware evaluation script, metrics, and deployment gates. No empirical validation claim is made until an approved dataset of observed outcomes is evaluated.
 
 See [`docs/ELP_IMPLEMENTATION.md`](docs/ELP_IMPLEMENTATION.md) for the architecture mapping and [`docs/RDASHPHDIA.pdf`](docs/RDASHPHDIA.pdf) for the supplied proposal.
 
@@ -131,3 +132,16 @@ The repository includes a `render.yaml` Blueprint for a free Render web service.
 The Blueprint sets the service start command to `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, uses `/health` as its health check, and allows the GitHub Pages origin through the `ALLOWED_ORIGINS` environment variable.
 
 **Free-tier notes:** Render free web services sleep after 15 minutes without inbound traffic and may take about a minute to wake on the next request. Free services have ephemeral storage; this application currently keeps data in memory, so learner/course/event records reset on restarts. The service is intended for testing and hobby use, not production or sensitive data. See https://render.com/docs/free for current limits.
+
+
+## Learning-prediction validation
+
+The first proposed target is observed competency achievement within 30 days of prediction time. The repository includes an empty CSV schema template at `data/learning_outcomes_template.csv` and an evaluator at `scripts/validate_learning_predictions.py`. The evaluator compares logistic regression with a prior-probability baseline, uses learner-disjoint holdout data, and supports a stricter chronological holdout with `--time-aware`.
+
+Run only with an approved dataset of real, observed outcomes:
+
+```bash
+python scripts/validate_learning_predictions.py --data /path/to/approved_learning_outcomes.csv --time-aware
+```
+
+The report is an offline evaluation, not a claim of causal learning impact or production readiness. See [the full protocol](docs/LEARNING_PREDICTION_VALIDATION.md). Never commit learner-level data to this repository.
