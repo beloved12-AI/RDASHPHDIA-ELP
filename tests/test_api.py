@@ -160,3 +160,7 @@ def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
     assert "Promise.all(liveRequests.map" in html
     assert "function renderLiveRecommendations(data)" in html
     assert "LIVE API OUTPUT" in html
+    assert "function generateLearnerId()" in html
+    assert "function createLearnerProfile()" in html
+    assert "fetch(base+'/api/v1/learners'" in html
+    assert "newLearnerRole" in html
