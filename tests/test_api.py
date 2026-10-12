@@ -162,7 +162,7 @@ def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
     assert "LIVE API OUTPUT" in html
     assert "function generateLearnerId()" in html
     assert "function createLearnerProfile()" in html
-    assert "fetch(base+'/api/v1/learners'" in html
+    assert "apiRequest(base,'/api/v1/learners'" in html
     assert "newLearnerRole" in html
 
     # All learner-specific requests must pass the base URL and endpoint separately.
