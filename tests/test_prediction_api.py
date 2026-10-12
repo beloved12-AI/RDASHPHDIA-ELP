@@ -1,4 +1,7 @@
+import joblib
+import pandas as pd
 from fastapi.testclient import TestClient
+from sklearn.linear_model import LogisticRegression
 
 from app.main import app
 
@@ -30,9 +33,20 @@ def test_prediction_endpoint_refuses_unvalidated_serving(monkeypatch):
 def test_prediction_endpoint_accepts_approved_artifact_bundle(monkeypatch, tmp_path):
     model_path = tmp_path / "learning_prediction_model.joblib"
     report_path = tmp_path / "learning-validation-report-approved.json"
-    model_path.write_text(
-        '{"feature_columns": ["prior_assessment_score", "course_completions", "practice_activity_count"], "model": {"intercept": -1.0, "coefficients": {"prior_assessment_score": 2.5, "course_completions": 0.6, "practice_activity_count": 0.04}}}',
-        encoding="utf-8",
+    feature_columns = ["prior_assessment_score", "course_completions", "practice_activity_count"]
+    training_features = pd.DataFrame(
+        [
+            [0.1, 0, 2],
+            [0.2, 1, 5],
+            [0.7, 2, 25],
+            [0.9, 4, 60],
+        ],
+        columns=feature_columns,
+    )
+    model = LogisticRegression().fit(training_features, [0, 0, 1, 1])
+    joblib.dump(
+        {"feature_columns": feature_columns, "model": model},
+        model_path,
     )
     report_path.write_text(
         '{"status": "approved_external_validation", "validated_for_deployment": true, "target": "competency_achieved_30d", "report_version": "1.0.0"}',
