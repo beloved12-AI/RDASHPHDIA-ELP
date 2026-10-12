@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.biomedical import router as biomedical_router
 from app.api.routes import router as api_router
+from app.api.prediction import router as prediction_router
 
 
 def _allowed_origins() -> list[str]:
@@ -37,6 +38,7 @@ app.add_middleware(
 )
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(biomedical_router, prefix="/api/v1")
+app.include_router(prediction_router, prefix="/api/v1")
 
 
 @app.get("/health")
