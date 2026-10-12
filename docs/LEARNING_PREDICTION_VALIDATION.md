@@ -2,6 +2,8 @@
 
 ## Status: validation-ready workflow, not yet an empirically validated model
 
+**No empirical accuracy claim yet.** The workflow is ready for evaluation, but no validated performance claim should be made until held-out observed outcomes and the validation gates below support it.
+
 The current ELP recommendation engine is a transparent heuristic. Its skill-gap rankings and recommendation scores are not learned outcome predictions. Do not describe them as validated learning predictions or as empirically validated performance metrics.
 
 ## First prediction target
