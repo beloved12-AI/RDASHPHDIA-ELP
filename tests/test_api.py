@@ -164,3 +164,11 @@ def test_static_frontend_calls_live_learner_endpoints_and_labels_demo_metrics():
     assert "function createLearnerProfile()" in html
     assert "fetch(base+'/api/v1/learners'" in html
     assert "newLearnerRole" in html
+
+    # All learner-specific requests must pass the base URL and endpoint separately.
+    # A one-argument apiRequest call would concatenate "undefined" onto the URL.
+    live_requests = html.split("const liveRequests=[", 1)[1].split(
+        "];const liveResults", 1
+    )[0]
+    assert live_requests.count("apiRequest(base,'/api/v1/learners/") == 4
+    assert "apiRequest(base+'/api/v1/learners/" not in live_requests
