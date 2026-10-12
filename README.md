@@ -13,6 +13,18 @@ uvicorn app.main:app --reload --port 8080
 
 The interactive API reference is available at `http://localhost:8080/docs`. To run the container instead, use `make build` followed by `make run`.
 
+### Protect API routes with a bearer token
+
+Generate a strong random token and set `API_AUTH_TOKEN` in the service environment (never commit the token to Git). For local development, for example:
+
+```bash
+export API_AUTH_TOKEN="replace-with-a-long-random-secret"
+curl http://localhost:8080/api/v1/courses \\
+  -H "Authorization: Bearer $API_AUTH_TOKEN"
+```
+
+The visual simulation has an optional password-style token field; it sends the token with API requests and does not save it to browser storage. Configure the same `API_AUTH_TOKEN` secret on the FastAPI host. If the environment variable is absent, authentication is disabled for development compatibility.
+
 ## API overview
 
 All application routes are under `/api/v1`.
@@ -62,7 +74,7 @@ Event IDs are idempotent: a repeated event with the same ID and payload is ackno
 
 - Learners, courses, and events are stored in SQLite at `data/rdashphdia_elp.db` by default. Set `LEARNING_DATABASE_PATH` to choose another database file. Keep the service to one replica: this SQLite-backed implementation is not a multi-replica shared database, and concurrent multi-process writes are not a supported deployment mode.
 - The “agents” are independent decision components in one API process. There is no external LLM, message broker, HRIS, or LMS integration.
-- This prototype has no authentication, authorization, or encryption layer. Use synthetic data only; do not send real employee or other sensitive records to it.
+- Optional shared bearer-token protection is available through the `API_AUTH_TOKEN` environment variable. When set, every `/api/v1/` route requires `Authorization: Bearer <token>`; `/health` remains public for service health checks. If `API_AUTH_TOKEN` is unset, API routes remain unauthenticated for local development, so configure a strong random token in the hosting provider's secret/environment settings before exposing the service. This is a single shared token, not per-user identity, role-based authorization, or encryption. Use synthetic data only; do not send real employee or other sensitive records to this prototype.
 - The current recommendation engine is a transparent heuristic, not a trained or validated learning-outcome predictor. Its dashboard metrics are illustrative and do not establish learning gains.
 - See [Learning-prediction validation protocol](docs/LEARNING_PREDICTION_VALIDATION.md) for the target definition, dataset contract, leakage-aware evaluation script, metrics, and deployment gates. No empirical validation claim is made until an approved dataset of observed outcomes is evaluated.
 
