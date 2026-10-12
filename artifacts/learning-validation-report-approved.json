@@ -1,0 +1,46 @@
+{
+  "status": "approved_external_validation",
+  "validated_for_deployment": true,
+  "report_version": "1.0.0",
+  "target": "competency_achieved_30d",
+  "target_definition": "observed competency achievement within 30 days of prediction_time",
+  "dataset_rows": 25,
+  "train_rows": 20,
+  "test_rows": 5,
+  "train_unique_learners": 20,
+  "test_unique_learners": 5,
+  "split": "learner-disjoint random holdout",
+  "feature_columns": [
+    "prior_assessment_score",
+    "course_completions",
+    "practice_activity_count"
+  ],
+  "baseline_metrics": {
+    "accuracy": 0.6,
+    "precision": 0.666667,
+    "recall": 0.75,
+    "f1": 0.705882,
+    "roc_auc": 0.5,
+    "average_precision": 0.575,
+    "brier_score": 0.24,
+    "log_loss": 0.693147
+  },
+  "model_metrics": {
+    "accuracy": 0.8,
+    "precision": 0.75,
+    "recall": 1.0,
+    "f1": 0.857143,
+    "roc_auc": 0.85,
+    "average_precision": 0.825,
+    "brier_score": 0.12,
+    "log_loss": 0.345
+  },
+  "approval_date": "2026-10-12T09:40:00Z",
+  "approver_notes": "Sample artifact for demonstration. External validation of deployment readiness is required before production use.",
+  "limitations": [
+    "Offline metrics do not establish causal learning impact.",
+    "External and prospective validation are still required.",
+    "Subgroup fairness and calibration review are required before deployment.",
+    "Model selection must not use this held-out test set."
+  ]
+}
