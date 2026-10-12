@@ -7,14 +7,20 @@ from typing import Dict
 import joblib
 import pandas as pd
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, validator
 
 
 router = APIRouter(prefix="/learning-prediction", tags=["learning-prediction"])
 
 
 class PredictionRequest(BaseModel):
-    features: Dict[str, float] = Field(..., min_items=1)
+    features: Dict[str, float]
+
+    @validator("features")
+    def features_must_not_be_empty(cls, value):
+        if not value:
+            raise ValueError("features must contain at least one item")
+        return value
 
 
 def _approved_artifact():
