@@ -8,13 +8,17 @@ __pycache__/
 /dist
 /build
 /*.egg-info
-Dockerfile
+docker-compose.override.yml
 *.db
 .kubeconfig
 .idea/
 .vscode/
 .envrc
 .env.local
+
+# Model artifacts (unless explicitly approved)
+/artifacts/*.joblib
+!/artifacts/learning_prediction_model.joblib
 
 # Docker
 docker-compose.override.yml
@@ -24,4 +28,3 @@ docker-compose.override.yml
 
 # GitHub Actions
 .github/
-

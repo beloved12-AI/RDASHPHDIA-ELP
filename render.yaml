@@ -9,3 +9,7 @@ services:
     envVars:
       - key: ALLOWED_ORIGINS
         value: https://beloved12-ai.github.io,http://localhost:8000,http://127.0.0.1:8000,http://localhost:8080,http://127.0.0.1:8080
+      - key: LEARNING_PREDICTION_MODEL_PATH
+        value: /app/artifacts/learning_prediction_model.joblib
+      - key: LEARNING_PREDICTION_VALIDATION_REPORT
+        value: /app/artifacts/learning-validation-report-approved.json
