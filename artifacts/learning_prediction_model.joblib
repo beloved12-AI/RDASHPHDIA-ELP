@@ -1,0 +1,15 @@
+{
+  "feature_columns": [
+    "prior_assessment_score",
+    "course_completions",
+    "practice_activity_count"
+  ],
+  "model": {
+    "intercept": -1.0,
+    "coefficients": {
+      "prior_assessment_score": 2.5,
+      "course_completions": 0.6,
+      "practice_activity_count": 0.04
+    }
+  }
+}
