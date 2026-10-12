@@ -1,4 +1,4 @@
-""""Live prediction endpoints that fail closed until an approved artifact is configured."""
+"""Live prediction endpoints that fail closed until an approved artifact is configured."""
 import json
 import math
 import os
