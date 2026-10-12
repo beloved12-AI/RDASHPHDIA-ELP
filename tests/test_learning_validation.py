@@ -53,5 +53,5 @@ def test_insufficient_dataset_fails_closed():
 def test_repository_labels_current_predictions_as_heuristic_not_validated():
     root = Path(__file__).resolve().parents[1]
     docs = root.joinpath("docs/LEARNING_PREDICTION_VALIDATION.md").read_text(encoding="utf-8")
-    assert "no empirical accuracy claim yet" in docs
+    assert "no empirical accuracy claim yet" in docs.lower()
     assert "prediction accuracy alone does not show" in docs.lower()
