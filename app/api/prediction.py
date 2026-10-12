@@ -1,5 +1,6 @@
-"""Live prediction endpoints that fail closed until an approved artifact is configured."""
+""""Live prediction endpoints that fail closed until an approved artifact is configured."""
 import json
+import math
 import os
 from pathlib import Path
 from typing import Dict
@@ -17,9 +18,11 @@ class PredictionRequest(BaseModel):
     features: Dict[str, float]
 
     @validator("features")
-    def features_must_not_be_empty(cls, value):
+    def features_must_be_nonempty_and_finite(cls, value):
         if not value:
             raise ValueError("features must contain at least one item")
+        if any(not math.isfinite(feature_value) for feature_value in value.values()):
+            raise ValueError("feature values must be finite numbers")
         return value
 
 
@@ -86,3 +89,4 @@ async def predict(request: PredictionRequest):
         "validated_for_deployment": True,
         "disclaimer": "Prediction is an estimate, not a guarantee or a causal estimate of learning impact.",
     }
+}
