@@ -145,3 +145,13 @@ python scripts/validate_learning_predictions.py --data /path/to/approved_learnin
 ```
 
 The report is an offline evaluation, not a claim of causal learning impact or production readiness. See [the full protocol](docs/LEARNING_PREDICTION_VALIDATION.md). Never commit learner-level data to this repository.
+
+
+## Live learning-prediction API (validation gated)
+
+The API exposes `GET /api/v1/learning-prediction/status` and `POST /api/v1/learning-prediction/predict`. Serving fails closed with `503 VALIDATION_PENDING` until both an approved model artifact and an external-validation report are configured. Required environment variables:
+
+- `LEARNING_PREDICTION_MODEL_PATH`: trusted joblib bundle containing `model` and `feature_columns`.
+- `LEARNING_PREDICTION_VALIDATION_REPORT`: JSON report whose `status` is `approved_external_validation` and `validated_for_deployment` is `true`.
+
+Do not set these variables for a candidate model or an offline-only report. The included evaluator deliberately sets `validated_for_deployment=false`; no empirical model or metrics are bundled. The API is therefore live and testable, but actual prediction serving remains disabled until real outcomes have been evaluated and the validation gate has been approved.
