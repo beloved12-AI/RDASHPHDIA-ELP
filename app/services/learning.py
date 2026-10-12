@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+from contextlib import closing
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -38,7 +39,7 @@ class LearningService:
         return sqlite3.connect(self.database_path, timeout=10)
 
     def _initialize_database(self) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection, connection:
             connection.execute(
                 "CREATE TABLE IF NOT EXISTS learners "
                 "(resource_id TEXT PRIMARY KEY, payload TEXT NOT NULL)"
@@ -53,7 +54,7 @@ class LearningService:
             )
 
     def _load_state(self) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection, connection:
             for resource_id, payload in connection.execute(
                 "SELECT resource_id, payload FROM learners"
             ):
@@ -69,7 +70,7 @@ class LearningService:
 
     def _persist(self) -> None:
         """Atomically save the current in-process state to SQLite."""
-        with self._connect() as connection:
+        with closing(self._connect()) as connection, connection:
             for table, records in (
                 ("learners", self.learners),
                 ("courses", self.courses),
