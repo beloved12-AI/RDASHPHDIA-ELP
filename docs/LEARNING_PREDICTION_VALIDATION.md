@@ -67,3 +67,8 @@ The evaluator will not generate example rows or invent metrics. It rejects dupli
 - [ ] Reproducible report and data/model versions retained.
 
 Until these gates are met, label the frontend's illustrative metrics as **demo-only** and describe the recommender as a heuristic, not a validated predictor. Prediction accuracy alone does not show that recommendations cause improved learning outcomes.
+
+
+## Live API gate
+
+The API status route is `GET /api/v1/learning-prediction/status`; inference is `POST /api/v1/learning-prediction/predict` with a JSON `features` object. It returns `503 VALIDATION_PENDING` unless the configured model bundle and report both exist and the report explicitly carries `status: approved_external_validation` and `validated_for_deployment: true`. The evaluator in this repository never sets that approval flag automatically. External review must create/approve the report after reviewing real, observed outcomes.
