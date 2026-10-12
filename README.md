@@ -105,7 +105,7 @@ GitHub Pages only hosts static files; it does not host the Python API. For remot
 - `https://beloved12-ai.github.io`
 - Any local development origin you use, such as `http://localhost:8000`
 
-The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. Do not use real employee, learner, patient, or other sensitive records: this prototype has no authentication or persistent database. Its data is held in process memory and resets when the service restarts.
+The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. The service now persists learner, course, and event records to SQLite, but it still has no authentication, authorization, or encryption. Do not use real employee, learner, patient, or other sensitive records.
 
 ### Run and test locally
 
