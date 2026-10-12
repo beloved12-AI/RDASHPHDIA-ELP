@@ -60,7 +60,7 @@ Event IDs are idempotent: a repeated event with the same ID and payload is ackno
 
 ## Prototype boundaries
 
-- Learners, courses, and events live in process memory and reset on restart. Keep the service to one replica until a shared persistent store is added.
+- Learners, courses, and events are stored in SQLite at `data/rdashphdia_elp.db` by default. Set `LEARNING_DATABASE_PATH` to choose another database file. Keep the service to one replica: this SQLite-backed implementation is not a multi-replica shared database, and concurrent multi-process writes are not a supported deployment mode.
 - The “agents” are independent decision components in one API process. There is no external LLM, message broker, HRIS, or LMS integration.
 - This prototype has no authentication, authorization, or encryption layer. Use synthetic data only; do not send real employee or other sensitive records to it.
 - The current recommendation engine is a transparent heuristic, not a trained or validated learning-outcome predictor. Its dashboard metrics are illustrative and do not establish learning gains.
@@ -105,7 +105,7 @@ GitHub Pages only hosts static files; it does not host the Python API. For remot
 - `https://beloved12-ai.github.io`
 - Any local development origin you use, such as `http://localhost:8000`
 
-The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. Do not use real employee, learner, patient, or other sensitive records: this prototype has no authentication or persistent database. Its data is held in process memory and resets when the service restarts.
+The application enables CORS for these defaults and any additional origins supplied through `ALLOWED_ORIGINS`. The service now persists learner, course, and event records to SQLite, but it still has no authentication, authorization, or encryption. Do not use real employee, learner, patient, or other sensitive records.
 
 ### Run and test locally
 
@@ -129,9 +129,9 @@ The repository includes a `render.yaml` Blueprint for a free Render web service.
 6. Test `https://YOUR-RENDER-URL/health`; it should return JSON such as `{"status":"ok"}`. Then test `https://YOUR-RENDER-URL/docs`.
 7. Open the public GitHub Pages simulation, paste the Render service's HTTPS origin (without a trailing slash) into **FastAPI backend connection**, and select **Test connection**.
 
-The Blueprint sets the service start command to `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, uses `/health` as its health check, and allows the GitHub Pages origin through the `ALLOWED_ORIGINS` environment variable.
+The Blueprint sets the service start command to `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, uses `/health` as its health check, and allows the GitHub Pages origin through the `ALLOWED_ORIGINS` environment variable. The learning service stores records in `data/rdashphdia_elp.db` by default; set `LEARNING_DATABASE_PATH` if the host provides a durable mounted disk.
 
-**Free-tier notes:** Render free web services sleep after 15 minutes without inbound traffic and may take about a minute to wake on the next request. Free services have ephemeral storage; this application currently keeps data in memory, so learner/course/event records reset on restarts. The service is intended for testing and hobby use, not production or sensitive data. See https://render.com/docs/free for current limits.
+**Free-tier notes:** Render free web services sleep after 15 minutes without inbound traffic and may take about a minute to wake on the next request. The SQLite file survives an ordinary process restart only while the underlying filesystem is retained; Render free services have ephemeral storage, so a redeploy, restart, or instance replacement can still erase the database. Use a host-mounted persistent disk or a managed PostgreSQL database for durable hosted records. The service is intended for testing and hobby use, not production or sensitive data. See https://render.com/docs/free for current limits.
 
 
 ## Learning-prediction validation

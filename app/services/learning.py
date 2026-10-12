@@ -1,4 +1,9 @@
+import json
+import os
+import sqlite3
+from contextlib import closing
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from app.api.schemas import CourseCreate, LearnerCreate, LearningEvent
@@ -13,12 +18,83 @@ class ConflictError(ValueError):
 
 
 class LearningService:
-    """In-process ELP model used by the prototype API."""
+    """SQLite-backed ELP model; JSON payloads preserve the existing API contract."""
 
-    def __init__(self):
+    def __init__(self, database_path: str | None = None):
+        configured_path = database_path or os.getenv(
+            "LEARNING_DATABASE_PATH", "data/rdashphdia_elp.db"
+        )
+        if configured_path == ":memory:":
+            raise ValueError("A file-backed SQLite database is required for persistence")
+        self.database_path = configured_path
+        Path(configured_path).expanduser().resolve().parent.mkdir(
+            parents=True, exist_ok=True
+        )
         self.learners: Dict[str, Dict[str, Any]] = {}
         self.courses: Dict[str, Dict[str, Any]] = {}
         self.events: Dict[str, Dict[str, Any]] = {}
+        self._initialize_database()
+        self._load_state()
+
+    def _connect(self):
+        return sqlite3.connect(self.database_path, timeout=10)
+
+    def _initialize_database(self) -> None:
+        with closing(self._connect()) as connection, connection:
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS learners "
+                "(resource_id TEXT PRIMARY KEY, payload TEXT NOT NULL)"
+            )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS courses "
+                "(resource_id TEXT PRIMARY KEY, payload TEXT NOT NULL)"
+            )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS events "
+                "(resource_id TEXT PRIMARY KEY, payload TEXT NOT NULL)"
+            )
+
+    def _load_state(self) -> None:
+        with closing(self._connect()) as connection, connection:
+            for resource_id, payload in connection.execute(
+                "SELECT resource_id, payload FROM learners"
+            ):
+                self.learners[resource_id] = json.loads(payload)
+            for resource_id, payload in connection.execute(
+                "SELECT resource_id, payload FROM courses"
+            ):
+                self.courses[resource_id] = json.loads(payload)
+            for resource_id, payload in connection.execute(
+                "SELECT resource_id, payload FROM events"
+            ):
+                self.events[resource_id] = json.loads(payload)
+
+    def _persist(self) -> None:
+        """Atomically save the current in-process state to SQLite."""
+        with closing(self._connect()) as connection, connection:
+            for table, records in (
+                ("learners", self.learners),
+                ("courses", self.courses),
+                ("events", self.events),
+            ):
+                connection.execute(f"DELETE FROM {table}")
+                connection.executemany(
+                    f"INSERT INTO {table} (resource_id, payload) VALUES (?, ?)",
+                    [
+                        (
+                            resource_id,
+                            json.dumps(record, sort_keys=True, default=str),
+                        )
+                        for resource_id, record in records.items()
+                    ],
+                )
+
+    def reset(self) -> None:
+        """Clear all records; intended for isolated tests and local development."""
+        self.learners.clear()
+        self.courses.clear()
+        self.events.clear()
+        self._persist()
 
     def create_learner(self, request: LearnerCreate) -> Dict[str, Any]:
         if request.learner_id in self.learners:
@@ -27,6 +103,7 @@ class LearningService:
         learner = request.dict()
         learner["completed_courses"] = []
         self.learners[request.learner_id] = learner
+        self._persist()
         return self.get_learner(request.learner_id)
 
     def get_learner(self, learner_id: str) -> Dict[str, Any]:
@@ -43,6 +120,7 @@ class LearningService:
         course["skills"] = sorted(set(course["skills"]))
         course["mandatory_for_roles"] = sorted(set(course["mandatory_for_roles"]))
         self.courses[request.course_id] = course
+        self._persist()
         return deepcopy(course)
 
     def list_courses(self) -> List[Dict[str, Any]]:
@@ -79,6 +157,7 @@ class LearningService:
             learner["skills"][request.skill_id or ""] = request.score
 
         self.events[request.event_id] = event
+        self._persist()
         return {
             "event_id": request.event_id,
             "status": "accepted",
