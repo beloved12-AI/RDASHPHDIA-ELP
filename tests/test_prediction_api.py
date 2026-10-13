@@ -1,5 +1,6 @@
 import joblib
 import pandas as pd
+import pytest
 from fastapi.testclient import TestClient
 from sklearn.linear_model import LogisticRegression
 
@@ -28,6 +29,16 @@ def test_prediction_endpoint_refuses_unvalidated_serving(monkeypatch):
     )
     assert response.status_code == 503
     assert response.json()["detail"]["code"] == "VALIDATION_PENDING"
+
+
+@pytest.mark.parametrize("invalid_value", [float("nan"), float("inf"), float("-inf")])
+def test_prediction_request_rejects_non_finite_features(invalid_value):
+    response = client.post(
+        "/api/v1/learning-prediction/predict",
+        json={"features": {"pretest_score": invalid_value}},
+    )
+    assert response.status_code == 422
+    assert "finite numbers" in response.text
 
 
 def test_prediction_endpoint_accepts_approved_artifact_bundle(monkeypatch, tmp_path):
