@@ -1,0 +1,4 @@
+tags: |
+  ghcr.io/beloved12-ai/rdashphdia-elp/hybrid-opt:${{ github.sha }}
+  ghcr.io/beloved12-ai/rdashphdia-elp/hybrid-opt:latest
+  ghcr.io/beloved12-ai/rdashphdia-elp/hybrid-opt:${{ github.ref_name }}
